@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>MouldIt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="MouldIt: data efficiency of multi-task temporal representation learning in injection moulding. Project page with video, figures, results and citation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,600;112,800&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: one reading column (~68ch) for text; figures, video and tables break out to a wider measure.
+   The header is a sensor readout: the four real in-mould channels of the reference cycle. */
+:root {
+  --bg: #f6f6f8;
+  --panel: #ffffff;
+  --fg: #1c1b24;
+  --muted: #5b596a;
+  --rule: #e2e1ea;
+  --accent: #4a3aa7;
+  --accent-soft: #ecebf8;
+  --figure-bg: #ffffff;
+  --ch-p: #2a78d6; --ch-t: #eb6834; --ch-us1: #1baf7a; --ch-us4: #eda100;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --step--1: 0.875rem; --step-0: 1.0625rem; --step-1: 1.3rem; --step-2: 1.75rem; --step-3: 2.5rem; --step-4: clamp(3rem, 9vw, 5.5rem);
+  --read: 68ch; --wide: 1080px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121119; --panel: #1b1a24; --fg: #ebeaf2; --muted: #a3a1b4; --rule: #2c2a3a;
+    --accent: #aa9fff; --accent-soft: #24213a; --figure-bg: #f3f3f6;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121119; --panel: #1b1a24; --fg: #ebeaf2; --muted: #a3a1b4; --rule: #2c2a3a;
+  --accent: #aa9fff; --accent-soft: #24213a; --figure-bg: #f3f3f6;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 4rem;
+}
+main { display: grid; gap: 4.5rem; }
+section, header, footer { width: 100%; max-width: var(--wide); margin-inline: auto; }
+.read { max-width: var(--read); }
+h1, h2, h3 { font-family: var(--font-display); font-stretch: 112%; text-wrap: balance; line-height: 1.15; margin: 0; }
+h2 { font-size: var(--step-3); font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: var(--step-1); font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); text-underline-offset: 0.18em; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+.label {
+  font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.stack { display: grid; gap: 1.1rem; }
+.section-head { display: grid; gap: 0.6rem; margin-bottom: 1.6rem; }
+
+/* header */
+header { display: grid; gap: 1.6rem; padding-top: 3.5rem; }
+.title { font-size: var(--step-4); font-weight: 800; color: var(--accent); letter-spacing: -0.02em; line-height: 1; }
+.subtitle { font-family: var(--font-display); font-stretch: 112%; font-weight: 600; font-size: var(--step-2); max-width: 42ch; }
+.byline { display: grid; gap: 0.2rem; color: var(--muted); }
+.byline strong { color: var(--fg); font-weight: 600; }
+.links { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; border-radius: 999px;
+  font-family: var(--font-mono); font-size: 0.9rem; font-weight: 500; text-decoration: none;
+  background: var(--fg); color: var(--bg); border: 1px solid var(--fg);
+}
+.btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--rule); }
+.btn.ghost:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+.btn.off { background: transparent; color: var(--muted); border: 1px dashed var(--rule); cursor: default; }
+.readout { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding-block: 0.8rem; display: grid; gap: 0.15rem; }
+.lane { display: grid; grid-template-columns: 10.5rem minmax(0, 1fr); gap: 1rem; align-items: center; }
+.lane + .lane svg { border-top: 1px dashed var(--rule); }
+.lane span { font-family: var(--font-mono); font-size: 0.78rem; }
+.lane svg { display: block; width: 100%; height: 42px; }
+.lane path { fill: none; stroke-width: 2.2; vector-effect: non-scaling-stroke; stroke-linejoin: round; stroke-linecap: round; }
+.lane .p { color: var(--ch-p); } .lane .t { color: var(--ch-t); } .lane .u1 { color: var(--ch-us1); } .lane .u4 { color: var(--ch-us4); }
+.readout .note { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding-left: 11.5rem; padding-top: 0.35rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .lane svg { animation: reveal 2.2s ease-out both; }
+  .lane:nth-child(2) svg { animation-delay: 0.12s; } .lane:nth-child(3) svg { animation-delay: 0.24s; } .lane:nth-child(4) svg { animation-delay: 0.36s; }
+  @keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+}
+@media (max-width: 560px) {
+  .lane { grid-template-columns: 5.5rem minmax(0, 1fr); gap: 0.6rem; }
+  .lane span { font-size: 0.7rem; }
+  .readout .note { padding-left: 6.1rem; }
+}
+
+/* video */
+.video { background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 16 / 9; max-width: 100%; }
+.video video { width: 100%; height: 100%; display: block; }
+
+/* key numbers */
+.keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.key { background: var(--panel); padding: 1.4rem 1.3rem 1.5rem; display: grid; gap: 0.5rem; align-content: start; }
+.key .num { font-family: var(--font-display); font-stretch: 112%; font-weight: 800; font-size: var(--step-3); color: var(--accent); line-height: 1; font-variant-numeric: tabular-nums; }
+.key .unit { font-family: var(--font-mono); font-size: 0.85rem; color: var(--muted); }
+.key p { font-size: 0.98rem; }
+
+/* figures */
+figure { margin: 0; display: grid; gap: 0.8rem; }
+.fig { background: var(--figure-bg); border: 1px solid var(--rule); border-radius: 10px; padding: clamp(0.6rem, 2vw, 1.4rem); }
+.fig img { display: block; width: 100%; height: auto; margin-inline: auto; }
+figcaption { font-size: 0.93rem; color: var(--muted); max-width: var(--read); }
+figcaption b { color: var(--fg); font-weight: 600; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2.5rem; align-items: start; }
+.split .fig img { max-width: 420px; }
+ol.questions { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.6rem; }
+ol.questions li::marker { font-family: var(--font-mono); color: var(--accent); }
+
+/* tabs */
+.tabs { display: inline-flex; gap: 0.25rem; padding: 0.25rem; border: 1px solid var(--rule); border-radius: 999px; background: var(--panel); }
+.tabs button {
+  font-family: var(--font-mono); font-size: 0.85rem; border: 0; background: transparent; color: var(--muted);
+  padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer;
+}
+.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+
+/* tables */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+th, td { padding: 0.55rem 0.75rem; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-family: var(--font-mono); font-weight: 500; font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); white-space: normal; vertical-align: bottom; }
+thead tr.group th { border-bottom: 0; padding-bottom: 0; }
+tbody tr.setting td { font-family: var(--font-display); font-stretch: 112%; font-weight: 600; text-align: left; background: var(--accent-soft); color: var(--fg); }
+tbody tr.mouldit td { color: var(--accent); }
+tbody tr.mouldit td:first-child { font-weight: 600; }
+td b { font-weight: 700; }
+td.na { color: var(--muted); }
+.table-note { font-size: 0.85rem; color: var(--muted); margin-top: 0.7rem; max-width: var(--read); }
+
+/* model terms */
+.terms { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.term { border-top: 3px solid var(--accent); padding-top: 0.8rem; display: grid; gap: 0.35rem; }
+.term code { font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent); }
+.term p { font-size: 0.95rem; }
+.formula {
+  font-family: var(--font-mono); font-size: 0.95rem; background: var(--panel); border: 1px solid var(--rule);
+  border-radius: 8px; padding: 0.8rem 1rem; overflow-x: auto; white-space: nowrap;
+}
+
+/* failure modes list */
+.modes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.2rem 2rem; margin: 0; padding: 0; list-style: none; }
+.modes li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem; padding-block: 0.55rem; border-bottom: 1px solid var(--rule); align-items: baseline; }
+.modes .ch { font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); min-width: 5.2rem; }
+.modes b { font-weight: 600; }
+
+/* limits */
+.limits { border-left: 3px solid var(--ch-t); padding: 0.2rem 0 0.2rem 1.2rem; display: grid; gap: 0.6rem; }
+.limits ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.4rem; }
+
+/* citation */
+.cite { position: relative; }
+.cite pre {
+  margin: 0; font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.55; background: var(--panel);
+  border: 1px solid var(--rule); border-radius: 10px; padding: 1.1rem 1.2rem; overflow-x: auto;
+}
+.copy {
+  position: absolute; top: 0.6rem; right: 0.6rem; font-family: var(--font-mono); font-size: 0.8rem; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--bg); color: var(--fg); border-radius: 6px; padding: 0.3rem 0.65rem;
+}
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+footer { border-top: 1px solid var(--rule); padding-top: 1.4rem; color: var(--muted); font-size: 0.9rem; display: grid; gap: 0.4rem; }
+
+@media (max-width: 760px) {
+  .keys, .terms { grid-template-columns: minmax(0, 1fr); }
+  .split { grid-template-columns: minmax(0, 1fr); gap: 1.6rem; }
+  .modes { grid-template-columns: minmax(0, 1fr); }
+  main { gap: 3.2rem; }
+  header { padding-top: 2rem; }
+}
+</style>
+
+<header>
+  <div class="label">Preprint · submitted to IEEE Transactions on Automation Science and Engineering</div>
+  <h1 class="title">MouldIt</h1>
+  <p class="subtitle">Data Efficiency of Multi-Task Temporal Representation Learning in Injection Moulding</p>
+  <div class="byline">
+    <span><strong>Abdullah Ayad</strong></span>
+    <span>Most of this work was done at the Department of CSAI, University of Technology Nuremberg</span>
+  </div>
+  <nav class="links" aria-label="Paper links">
+    <a class="btn" href="https://arxiv.org/abs/2611.13646">arXiv 2611.13646</a>
+    <a class="btn ghost" href="https://arxiv.org/pdf/2611.13646">PDF</a>
+    <a class="btn ghost" href="https://doi.org/10.5281/zenodo.20744054">Dataset</a>
+    <a class="btn ghost" href="#citation">BibTeX</a>
+    <a class="btn ghost" href="https://github.com/ayadabdalla/mouldit_benchmark">Code</a>
+  </nav>
+  <div class="readout" role="img" aria-label="The real reference cycle: four in-mould sensor channels over 45 seconds">
+    <div class="lane"><span class="p" title="Pressure P1">Pressure P1</span><svg viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"><path stroke="var(--ch-p)" d="M0.0,36.2 L5.9,36.2 L11.8,36.2 L17.8,36.2 L23.7,36.2 L29.6,36.2 L35.5,36.2 L41.4,36.2 L47.3,36.2 L53.3,36.2 L59.2,37.0 L65.1,36.4 L71.0,34.5 L76.9,31.6 L82.8,3.0 L88.8,15.6 L94.7,19.1 L100.6,20.1 L106.5,20.9 L112.4,21.4 L118.3,21.5 L124.3,21.5 L130.2,21.4 L136.1,21.4 L142.0,21.5 L147.9,21.5 L153.8,21.5 L159.8,21.5 L165.7,21.6 L171.6,21.6 L177.5,21.7 L183.4,21.7 L189.3,21.8 L195.3,21.9 L201.2,22.0 L207.1,22.1 L213.0,22.2 L218.9,22.3 L224.9,22.5 L230.8,22.6 L236.7,22.8 L242.6,22.9 L248.5,23.1 L254.4,23.2 L260.4,23.3 L266.3,23.5 L272.2,23.7 L278.1,23.9 L284.0,25.0 L289.9,24.1 L295.9,21.8 L301.8,19.6 L307.7,18.7 L313.6,19.6 L319.5,23.0 L325.4,28.4 L331.4,32.2 L337.3,34.3 L343.2,35.3 L349.1,35.5 L355.0,35.3 L360.9,35.2 L366.9,35.2 L372.8,35.2 L378.7,35.3 L384.6,35.3 L390.5,35.3 L396.4,35.4 L402.4,35.4 L408.3,35.4 L414.2,35.4 L420.1,35.4 L426.0,35.4 L432.0,35.5 L437.9,35.5 L443.8,35.5 L449.7,35.5 L455.6,35.5 L461.5,35.5 L467.5,35.5 L473.4,35.6 L479.3,35.6 L485.2,35.6 L491.1,35.6 L497.0,35.6 L503.0,35.6 L508.9,35.6 L514.8,35.6 L520.7,35.7 L526.6,35.7 L532.5,35.7 L538.5,35.7 L544.4,35.7 L550.3,35.7 L556.2,35.7 L562.1,35.7 L568.0,35.7 L574.0,35.7 L579.9,35.7 L585.8,35.7 L591.7,35.7 L597.6,35.7 L603.6,35.7 L609.5,35.7 L615.4,35.7 L621.3,35.7 L627.2,35.7 L633.1,35.7 L639.1,35.7 L645.0,35.7 L650.9,35.7 L656.8,35.7 L662.7,35.7 L668.6,35.7 L674.6,35.7 L680.5,35.7 L686.4,35.7 L692.3,35.7 L698.2,35.7 L704.1,35.8 L710.1,35.8 L716.0,35.8 L721.9,35.8 L727.8,35.8 L733.7,35.8 L739.6,35.8 L745.6,35.8 L751.5,35.8 L757.4,35.8 L763.3,35.8 L769.2,35.8 L775.1,35.8 L781.1,35.8 L787.0,35.8 L792.9,35.8 L798.8,35.8 L804.7,35.8 L810.7,35.8 L816.6,35.8 L822.5,35.8 L828.4,35.8 L834.3,35.8 L840.2,35.8 L846.2,35.8 L852.1,35.8 L858.0,35.8 L863.9,35.8 L869.8,35.8 L875.7,35.8 L881.7,35.8 L887.6,35.8 L893.5,35.8 L899.4,35.8 L905.3,35.8 L911.2,35.8 L917.2,35.8 L923.1,35.8 L929.0,35.8 L934.9,35.8 L940.8,35.8 L946.7,35.8 L952.7,35.8 L958.6,35.8 L964.5,35.8 L970.4,35.8 L976.3,35.8 L982.2,35.8 L988.2,35.8 L994.1,35.8 L1000.0,35.9"/></svg></div>
+    <div class="lane"><span class="t" title="Temperature T3">Temperature T3</span><svg viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"><path stroke="var(--ch-t)" d="M0.0,36.7 L5.9,36.7 L11.8,36.8 L17.8,36.8 L23.7,36.9 L29.6,36.9 L35.5,36.9 L41.4,36.8 L47.3,36.8 L53.3,36.8 L59.2,37.0 L65.1,36.9 L71.0,36.5 L76.9,35.8 L82.8,9.2 L88.8,4.4 L94.7,3.0 L100.6,3.0 L106.5,3.1 L112.4,3.2 L118.3,3.5 L124.3,3.8 L130.2,4.2 L136.1,4.5 L142.0,4.9 L147.9,5.3 L153.8,5.6 L159.8,5.9 L165.7,6.2 L171.6,6.6 L177.5,6.9 L183.4,7.2 L189.3,7.5 L195.3,7.7 L201.2,8.0 L207.1,8.3 L213.0,8.5 L218.9,8.8 L224.9,9.1 L230.8,9.3 L236.7,9.5 L242.6,9.8 L248.5,9.9 L254.4,10.1 L260.4,10.3 L266.3,10.6 L272.2,10.8 L278.1,10.9 L284.0,11.1 L289.9,11.3 L295.9,11.4 L301.8,11.6 L307.7,11.8 L313.6,12.0 L319.5,12.1 L325.4,12.2 L331.4,12.4 L337.3,12.5 L343.2,12.7 L349.1,12.8 L355.0,12.9 L360.9,13.1 L366.9,13.4 L372.8,13.7 L378.7,14.0 L384.6,14.4 L390.5,14.7 L396.4,15.0 L402.4,15.2 L408.3,15.4 L414.2,15.6 L420.1,15.8 L426.0,16.0 L432.0,16.1 L437.9,16.3 L443.8,16.5 L449.7,16.8 L455.6,17.0 L461.5,17.3 L467.5,17.5 L473.4,17.8 L479.3,18.0 L485.2,18.3 L491.1,18.5 L497.0,18.7 L503.0,18.9 L508.9,19.0 L514.8,19.2 L520.7,19.3 L526.6,19.5 L532.5,19.7 L538.5,19.8 L544.4,20.0 L550.3,20.1 L556.2,20.2 L562.1,20.4 L568.0,20.5 L574.0,20.7 L579.9,20.8 L585.8,20.9 L591.7,21.1 L597.6,21.2 L603.6,21.3 L609.5,21.4 L615.4,21.5 L621.3,21.6 L627.2,21.7 L633.1,21.8 L639.1,21.9 L645.0,22.0 L650.9,22.1 L656.8,22.2 L662.7,22.3 L668.6,22.4 L674.6,22.5 L680.5,22.6 L686.4,22.7 L692.3,22.8 L698.2,22.9 L704.1,22.9 L710.1,23.0 L716.0,23.1 L721.9,23.1 L727.8,23.2 L733.7,23.3 L739.6,23.3 L745.6,23.4 L751.5,23.5 L757.4,23.6 L763.3,23.7 L769.2,23.7 L775.1,23.8 L781.1,23.8 L787.0,23.9 L792.9,24.0 L798.8,24.0 L804.7,24.1 L810.7,24.1 L816.6,24.2 L822.5,24.2 L828.4,24.3 L834.3,24.3 L840.2,24.4 L846.2,24.5 L852.1,24.6 L858.0,24.6 L863.9,24.7 L869.8,24.7 L875.7,24.7 L881.7,24.7 L887.6,24.8 L893.5,24.8 L899.4,24.8 L905.3,24.8 L911.2,24.9 L917.2,24.9 L923.1,25.0 L929.0,25.0 L934.9,25.1 L940.8,25.1 L946.7,25.2 L952.7,25.2 L958.6,25.3 L964.5,25.3 L970.4,25.3 L976.3,25.3 L982.2,25.3 L988.2,25.4 L994.1,25.4 L1000.0,25.4"/></svg></div>
+    <div class="lane"><span class="u1" title="Ultrasound US1">Ultrasound US1</span><svg viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"><path stroke="var(--ch-us1)" d="M0.0,6.0 L5.9,6.0 L11.8,6.0 L17.8,5.9 L23.7,5.9 L29.6,5.8 L35.5,5.7 L41.4,5.6 L47.3,5.3 L53.3,5.2 L59.2,5.2 L65.1,3.0 L71.0,12.5 L76.9,29.1 L82.8,37.0 L88.8,32.6 L94.7,30.4 L100.6,28.7 L106.5,27.5 L112.4,26.8 L118.3,26.3 L124.3,25.8 L130.2,25.3 L136.1,24.8 L142.0,24.1 L147.9,23.7 L153.8,23.1 L159.8,22.5 L165.7,21.7 L171.6,20.6 L177.5,19.5 L183.4,18.2 L189.3,16.9 L195.3,15.5 L201.2,14.2 L207.1,13.0 L213.0,11.8 L218.9,10.9 L224.9,10.3 L230.8,9.9 L236.7,9.6 L242.6,9.2 L248.5,8.8 L254.4,8.5 L260.4,8.2 L266.3,8.2 L272.2,8.0 L278.1,7.7 L284.0,7.6 L289.9,7.7 L295.9,7.8 L301.8,7.7 L307.7,7.8 L313.6,7.8 L319.5,7.9 L325.4,8.1 L331.4,8.5 L337.3,9.1 L343.2,10.2 L349.1,11.5 L355.0,12.7 L360.9,14.8 L366.9,18.2 L372.8,22.1 L378.7,25.2 L384.6,28.4 L390.5,31.3 L396.4,32.6 L402.4,31.9 L408.3,31.2 L414.2,30.6 L420.1,30.1 L426.0,29.5 L432.0,28.8 L437.9,28.3 L443.8,27.9 L449.7,27.6 L455.6,27.2 L461.5,26.9 L467.5,26.7 L473.4,26.5 L479.3,26.3 L485.2,26.0 L491.1,25.8 L497.0,25.6 L503.0,25.5 L508.9,25.3 L514.8,25.2 L520.7,24.9 L526.6,24.7 L532.5,24.7 L538.5,24.6 L544.4,24.6 L550.3,24.3 L556.2,24.2 L562.1,24.2 L568.0,24.1 L574.0,24.0 L579.9,23.7 L585.8,24.1 L591.7,24.6 L597.6,24.1 L603.6,23.0 L609.5,22.3 L615.4,21.7 L621.3,21.4 L627.2,21.0 L633.1,20.7 L639.1,20.5 L645.0,20.4 L650.9,20.5 L656.8,20.7 L662.7,20.7 L668.6,20.6 L674.6,20.4 L680.5,20.3 L686.4,20.4 L692.3,20.4 L698.2,20.5 L704.1,20.7 L710.1,20.8 L716.0,20.8 L721.9,20.9 L727.8,20.9 L733.7,21.0 L739.6,21.0 L745.6,21.1 L751.5,21.2 L757.4,21.2 L763.3,21.3 L769.2,21.3 L775.1,21.3 L781.1,21.4 L787.0,21.3 L792.9,21.4 L798.8,21.5 L804.7,21.8 L810.7,21.9 L816.6,21.8 L822.5,21.7 L828.4,21.7 L834.3,21.8 L840.2,21.9 L846.2,22.0 L852.1,22.1 L858.0,22.1 L863.9,22.0 L869.8,22.1 L875.7,22.3 L881.7,22.4 L887.6,22.3 L893.5,22.4 L899.4,22.4 L905.3,22.6 L911.2,22.7 L917.2,22.8 L923.1,22.8 L929.0,22.7 L934.9,22.5 L940.8,22.5 L946.7,22.7 L952.7,22.9 L958.6,23.0 L964.5,23.0 L970.4,23.0 L976.3,23.0 L982.2,23.1 L988.2,23.2 L994.1,23.1 L1000.0,23.1"/></svg></div>
+    <div class="lane"><span class="u4" title="Ultrasound US4">Ultrasound US4</span><svg viewBox="0 0 1000 40" preserveAspectRatio="none" aria-hidden="true"><path stroke="var(--ch-us4)" d="M0.0,8.6 L5.9,8.9 L11.8,8.9 L17.8,8.8 L23.7,9.0 L29.6,9.3 L35.5,9.4 L41.4,9.3 L47.3,9.1 L53.3,9.0 L59.2,9.2 L65.1,10.2 L71.0,10.7 L76.9,7.6 L82.8,3.4 L88.8,3.4 L94.7,3.3 L100.6,3.4 L106.5,3.6 L112.4,4.1 L118.3,4.5 L124.3,4.7 L130.2,5.0 L136.1,5.3 L142.0,5.4 L147.9,5.6 L153.8,6.0 L159.8,6.8 L165.7,7.4 L171.6,7.7 L177.5,8.3 L183.4,9.1 L189.3,10.2 L195.3,11.3 L201.2,12.1 L207.1,12.6 L213.0,13.0 L218.9,13.3 L224.9,13.5 L230.8,13.5 L236.7,13.5 L242.6,13.4 L248.5,13.4 L254.4,13.3 L260.4,13.2 L266.3,13.3 L272.2,13.2 L278.1,13.0 L284.0,12.9 L289.9,13.0 L295.9,13.0 L301.8,12.9 L307.7,13.2 L313.6,13.2 L319.5,13.3 L325.4,13.1 L331.4,13.0 L337.3,12.9 L343.2,12.8 L349.1,12.7 L355.0,12.8 L360.9,13.0 L366.9,12.8 L372.8,12.0 L378.7,12.2 L384.6,12.4 L390.5,19.1 L396.4,29.1 L402.4,34.7 L408.3,35.6 L414.2,36.4 L420.1,36.8 L426.0,37.0 L432.0,36.7 L437.9,36.0 L443.8,35.5 L449.7,34.9 L455.6,34.1 L461.5,33.3 L467.5,32.5 L473.4,31.7 L479.3,30.7 L485.2,29.7 L491.1,28.8 L497.0,27.9 L503.0,27.1 L508.9,26.2 L514.8,25.4 L520.7,24.5 L526.6,23.7 L532.5,23.4 L538.5,23.0 L544.4,22.2 L550.3,21.2 L556.2,20.7 L562.1,20.2 L568.0,19.4 L574.0,18.6 L579.9,17.6 L585.8,16.7 L591.7,17.0 L597.6,17.8 L603.6,17.7 L609.5,17.0 L615.4,15.9 L621.3,14.6 L627.2,13.6 L633.1,12.7 L639.1,11.7 L645.0,10.8 L650.9,10.1 L656.8,9.7 L662.7,9.2 L668.6,8.4 L674.6,7.7 L680.5,7.1 L686.4,6.3 L692.3,5.8 L698.2,5.6 L704.1,5.6 L710.1,5.5 L716.0,5.3 L721.9,5.2 L727.8,5.2 L733.7,5.3 L739.6,5.5 L745.6,5.4 L751.5,5.3 L757.4,5.2 L763.3,5.3 L769.2,5.3 L775.1,5.0 L781.1,5.0 L787.0,4.8 L792.9,4.7 L798.8,4.7 L804.7,5.1 L810.7,5.4 L816.6,5.3 L822.5,5.0 L828.4,4.8 L834.3,4.7 L840.2,4.8 L846.2,4.8 L852.1,4.9 L858.0,4.7 L863.9,4.6 L869.8,4.8 L875.7,4.9 L881.7,5.0 L887.6,4.8 L893.5,4.6 L899.4,4.6 L905.3,4.9 L911.2,5.0 L917.2,5.0 L923.1,4.9 L929.0,4.6 L934.9,4.2 L940.8,4.0 L946.7,4.2 L952.7,4.4 L958.6,4.6 L964.5,4.6 L970.4,4.6 L976.3,4.5 L982.2,4.6 L988.2,4.7 L994.1,4.6 L1000.0,4.5"/></svg></div>
+    <div class="note"><span>0 s</span><span>the one real cycle every dataset is built from · normalised</span><span>45 s</span></div>
+  </div>
+</header>
+
+<main>
+  <section aria-label="Video">
+    <div class="video">
+      <video controls preload="metadata" poster="assets/video_poster.jpg">
+        <source src="assets/mouldit_video.mp4" type="video/mp4">
+        Your browser cannot play this video. <a href="assets/mouldit_video.mp4">Download it</a>.
+      </video>
+    </div>
+  </section>
+
+  <section aria-labelledby="results-short">
+    <div class="section-head">
+      <div class="label">In short</div>
+      <h2 id="results-short">When does deep learning beat classical machine learning on temporal data?</h2>
+    </div>
+    <div class="keys">
+      <div class="key">
+        <span class="unit">pressure only</span>
+        <span class="num">4,000</span>
+        <span class="unit">cycles</span>
+        <p>From this dataset size, MouldIt is stable across seeds and the best method at classifying known faults and at detecting unknown ones. With less data, random forests with a PCA unknown flag sort parts better.</p>
+      </div>
+      <div class="key">
+        <span class="unit">pressure + temperature + 2 ultrasound</span>
+        <span class="num">2,000</span>
+        <span class="unit">cycles</span>
+        <p>With the added sensors, MouldIt is stable across seeds and leads on both tasks from 2,000 cycles, and it has the lowest sorting loss at every size tested.</p>
+      </div>
+      <div class="key">
+        <span class="unit">sorting loss at 16,000 cycles</span>
+        <span class="num">6.0 / 1.0 %</span>
+        <span class="unit">± 0.7 / ± 0.3</span>
+        <p>Pressure only and with all sensors. MouldIt ranks first against every baseline, including random forests with the PCA unknown flag (7.5 / 1.1 %).</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="abstract">
+    <div class="split">
+      <div class="stack">
+        <div class="section-head">
+          <div class="label">Abstract</div>
+          <h2 id="abstract">One model for sorting moulded parts</h2>
+        </div>
+        <p>Smart industrial solutions that address multiple tasks need models that understand the underlying process. We examine representation learning for the injection moulding process and ask how data-efficient it is, and how much additional sensors help, compared with classical machine learning.</p>
+        <p>From one real reference cycle of an Erlanger Träger part, we synthesise process-informed datasets of 50 to 16,000 cycles. MouldIt, a temporal convolution and attention based variational autoencoder, reconstructs the in-mould signals while it classifies each part as acceptable or as one of the synthetic failure modes. A novelty score from the same network flags faults that were never seen in training.</p>
+        <p>We compare MouldIt with k-nearest neighbours, logistic regression, random forests, PCA and an accept-all reference, all adapted to both tasks, in single-modal and multi-modal settings.</p>
+        <h3>Questions the study answers</h3>
+        <ol class="questions">
+          <li>From how much data is a learned representation stable across seeds and better than classical methods?</li>
+          <li>Do additional sensors reduce that amount?</li>
+          <li>Does it also make fewer sorting errors on production metrics?</li>
+          <li>Does it generalise to failure modes it has never seen?</li>
+        </ol>
+      </div>
+      <figure>
+        <div class="fig"><img src="assets/teaser.png" alt="Overview: one real cycle, synthesis of OK and faulty cycles, MouldIt versus classical methods, data efficiency, latent analysis and sorting loss." loading="lazy"></div>
+        <figcaption><b>Overview.</b> (a) One real cycle becomes (b) synthetic datasets of 50 to 16,000 cycles. (c) MouldIt is compared with classical methods. (d) It is stable and leads from 4,000 cycles with pressure alone and from 2,000 with all sensors. (e) It flags unknown faults by its latent term, its reconstruction term, or both. (f) Its sorting loss at 16,000 cycles.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="data">
+    <div class="section-head read">
+      <div class="label">Method · 1</div>
+      <h2 id="data">Process-informed synthetic data</h2>
+      <p>Public injection moulding datasets with in-mould signals and many fault types do not exist yet. We start from the first cycle of the public FORinFPRO-HIMD dataset: cavity pressure, cavity temperature and two ultrasound channels, aligned on one grid of 340 steps over 45 s. Every synthetic cycle is a copy of it with benign OK variation (noise, gain, lead or lag, trend, smoothing). Faulty cycles also get one failure mode, placed relative to the fill start, pressure peak and holding end.</p>
+    </div>
+    <div class="split">
+      <figure>
+        <div class="fig"><img src="assets/reference_cycle.png" alt="The real reference cycle: pressure, temperature and two ultrasound channels with phase markers." loading="lazy"></div>
+        <figcaption><b>The reference cycle.</b> Pressure P1 is the single-modal input. The multi-modal input adds temperature T3 and the ultrasound amplitudes US1 and US4. Dotted lines mark fill start, pressure peak and holding end at 3.3, 3.7 and 15.2 s.</figcaption>
+      </figure>
+      <div class="stack">
+        <h3>Failure modes</h3>
+        <ul class="modes" style="grid-template-columns: minmax(0, 1fr);">
+          <li><span class="ch">all channels</span><span><b>Time shift.</b> Events happen earlier or later.</span></li>
+          <li><span class="ch">pressure</span><span><b>Under- or overpacking.</b> Pressure scaled over filling and holding.</span></li>
+          <li><span class="ch">pressure</span><span><b>Fast gate freeze.</b> Pressure decays early in the holding phase.</span></li>
+          <li><span class="ch">pressure</span><span><b>Secondary pressure rise.</b> A bump in the cooling phase.</span></li>
+          <li><span class="ch">all channels</span><span><b>Machine drift.</b> Lower holding pressure and added noise; with all sensors, the temperature curve is also shifted up.</span></li>
+          <li><span class="ch">temperature</span><span><b>Temperature dynamics.</b> Shifted melt temperature, faster or slower cooling.</span></li>
+          <li><span class="ch">ultrasound</span><span><b>Inter-sensor inconsistency.</b> One sensor attenuated, the other amplified.</span></li>
+          <li><span class="ch">ultrasound</span><span><b>Distorted ultrasonic response.</b> Weaker dip and recovery, as when a gap forms.</span></li>
+        </ul>
+        <p class="table-note">The single-modal setting has 6 classes (OK and the first five modes, pressure only). The multi-modal setting has 9.</p>
+      </div>
+    </div>
+    <figure style="margin-top: 2rem;">
+      <div class="fig"><img src="assets/synthetic_multimodal.png" alt="Five synthetic cycles per class for all nine multi-modal classes and four channels." loading="lazy"></div>
+      <figcaption><b>Synthetic multi-modal data.</b> One column per class, one row per channel. OK in blue, failure modes in orange, the real reference in black. Hatched panels are channels that the failure mode leaves unchanged.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="model">
+    <div class="section-head read">
+      <div class="label">Method · 2</div>
+      <h2 id="model">The MouldIt model</h2>
+      <p>MouldIt is a variational autoencoder for time series. Two temporal convolution blocks capture local shape, and a temporal attention block relates events across the cycle. The encoder compresses each cycle into a 32-number latent summary. From it, linear heads predict the part class and a mirrored decoder rebuilds the signal.</p>
+    </div>
+    <figure>
+      <div class="fig"><img src="assets/architecture.png" alt="MouldIt architecture: TCN and attention encoder, 32-dimensional latent, classification heads and decoder." loading="lazy"></div>
+      <figcaption><b>Architecture.</b> Input x with C = 1 or 4 channels of length 340. Dashed lines mark the three loss terms. At inference, μ replaces the sampled z.</figcaption>
+    </figure>
+    <div class="stack" style="margin-top: 2rem;">
+      <div class="terms">
+        <div class="term"><code>MSE(x, x̂)</code><h3>Reconstruct</h3><p>Rebuild the full signal from the latent summary.</p></div>
+        <div class="term"><code>β · KLD(q ‖ p)</code><h3>Regularise</h3><p>Keep the latent distribution close to a standard normal prior; β follows from the OK noise level.</p></div>
+        <div class="term"><code>0.1 · BCE(y, ŷ)</code><h3>Classify</h3><p>Predict OK or the failure mode, one head per class.</p></div>
+      </div>
+      <h3 style="margin-top: 1.2rem;">Flagging unknown faults</h3>
+      <p class="read">The trained network also gives a novelty score, with no extra model. The latent term is the distance to the nearest known class, in units of that class's 95 % boundary. The reconstruction term is the squared reconstruction error, in units of its 95 % level on known cycles. A cycle is flagged as unknown when the larger of the two passes a threshold set for a 5 % false positive rate.</p>
+      <div class="formula">N(x) = max( L(x), R(x) / η<sub>R</sub> ) &gt; Θ  →  unknown fault</div>
+    </div>
+  </section>
+
+  <section aria-labelledby="results">
+    <div class="section-head read">
+      <div class="label">Results</div>
+      <h2 id="results">Performance over dataset size</h2>
+      <p>Every method is trained on nine dataset sizes from 50 to 16,000 cycles with three seeds. For unknown detection, each failure mode is held out once from training and added to the test set.</p>
+    </div>
+    <div class="stack">
+      <div class="tabs" role="tablist" aria-label="Sensor setting for the scaling figure">
+        <button role="tab" id="tab-scaling-p" aria-selected="true" aria-controls="panel-scaling-p" data-group="scaling">Pressure only</button>
+        <button role="tab" id="tab-scaling-m" aria-selected="false" aria-controls="panel-scaling-m" data-group="scaling">All sensors</button>
+      </div>
+      <figure id="panel-scaling-p" role="tabpanel" aria-labelledby="tab-scaling-p" data-group="scaling">
+        <div class="fig"><img src="assets/scaling_pressure.png" alt="Single-modal balanced accuracy, unknown AUROC and unknown detection over dataset size." loading="lazy"></div>
+        <figcaption><b>Pressure only.</b> (a) Balanced accuracy over six classes, (b) unknown AUROC and (c) unknown detection at 5 % false positive rate. Random forests classify best and PCA detects best with little data. MouldIt is stable and best in all three metrics from 4,000 cycles (shaded).</figcaption>
+      </figure>
+      <figure id="panel-scaling-m" role="tabpanel" aria-labelledby="tab-scaling-m" data-group="scaling" hidden>
+        <div class="fig"><img src="assets/scaling_multimodal.png" alt="Multi-modal balanced accuracy, unknown AUROC and unknown detection over dataset size." loading="lazy"></div>
+        <figcaption><b>All sensors.</b> MouldIt has the highest unknown detection at every size, flags 90.7 % of unknown faults at only 200 cycles, and flags all of them from 8,000. It is stable and best in all three metrics from 2,000 cycles.</figcaption>
+      </figure>
+    </div>
+
+    <div class="stack" style="margin-top: 3.5rem;">
+      <div class="section-head read" style="margin-bottom: 0.4rem;">
+        <h2>Sorting parts</h2>
+        <p>A part ships only if it is predicted OK and not flagged as unknown. That decision can fail in four ways: good parts rejected, known faults shipped, unknown faults shipped, and unknown faults rejected as a known fault. The sorting loss is the mean of the four rates.</p>
+      </div>
+      <div class="tabs" role="tablist" aria-label="Sensor setting for the sorting figure">
+        <button role="tab" id="tab-sorting-p" aria-selected="true" aria-controls="panel-sorting-p" data-group="sorting">Pressure only</button>
+        <button role="tab" id="tab-sorting-m" aria-selected="false" aria-controls="panel-sorting-m" data-group="sorting">All sensors</button>
+      </div>
+      <figure id="panel-sorting-p" role="tabpanel" aria-labelledby="tab-sorting-p" data-group="sorting">
+        <div class="fig"><img src="assets/sorting_pressure.png" alt="Single-modal sorting errors over dataset size and sorting loss ranking at 16,000 cycles." loading="lazy"></div>
+        <figcaption><b>Pressure only.</b> Random forests with the PCA unknown flag sort best with little data. MouldIt catches up at 2,000 cycles and has the lowest sorting loss from 4,000 on. Most of its remaining loss is unknown faults rejected as a known fault.</figcaption>
+      </figure>
+      <figure id="panel-sorting-m" role="tabpanel" aria-labelledby="tab-sorting-m" data-group="sorting" hidden>
+        <div class="fig"><img src="assets/sorting_multimodal.png" alt="Multi-modal sorting errors over dataset size and sorting loss ranking at 16,000 cycles." loading="lazy"></div>
+        <figcaption><b>All sensors.</b> MouldIt has the lowest sorting loss at every size: 4.3 % at 200 cycles, about half that of random forests with the PCA flag (8.1 %). At 16,000 cycles its only errors are good parts rejected.</figcaption>
+      </figure>
+    </div>
+
+    <div style="margin-top: 3.5rem;" class="stack">
+      <h3>All metrics at 16,000 cycles</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr class="group"><th></th><th colspan="3">Higher is better</th><th colspan="5">Lower is better</th></tr>
+            <tr>
+              <th>Method</th><th>Balanced accuracy</th><th>Unknown AUROC</th><th>Unknown detection</th>
+              <th>Good parts rejected</th><th>Known faults shipped</th><th>Unknown faults shipped</th><th>Unknown rejected as known</th><th>Sorting loss</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="setting"><td colspan="9">Single-modal · pressure · 6 classes</td></tr>
+            <tr class="mouldit"><td>MouldIt</td><td><b>99.1 ± 0.5</b></td><td><b>0.937 ± 0.016</b></td><td><b>80.6 ± 4.2</b></td><td>3.4 ± 1.3</td><td>1.2 ± 2.0</td><td>1.7 ± 0.2</td><td><b>17.7 ± 4.2</b></td><td><b>6.0 ± 0.7</b></td></tr>
+            <tr><td>RF + PCA flag</td><td class="na">–</td><td class="na">–</td><td class="na">–</td><td>3.2 ± 0.7</td><td>0.1 ± 0.1</td><td>5.5 ± 0.7</td><td>21.0 ± 0.4</td><td>7.5 ± 0.1</td></tr>
+            <tr><td>kNN</td><td>85.1 ± 0.1</td><td>0.897 ± 0.001</td><td>64.1 ± 0.6</td><td><b>2.2 ± 1.3</b></td><td>3.4 ± 0.2</td><td>13.1 ± 0.4</td><td>22.8 ± 0.2</td><td>10.4 ± 0.3</td></tr>
+            <tr><td>Random forest</td><td>97.9 ± 0.3</td><td>0.794 ± 0.011</td><td>30.1 ± 1.3</td><td>5.3 ± 0.3</td><td><b>0.0 ± 0.0</b></td><td>27.3 ± 2.0</td><td>42.6 ± 0.8</td><td>18.8 ± 0.3</td></tr>
+            <tr><td>PCA</td><td>87.0 ± 1.6</td><td>0.921 ± 0.004</td><td>73.5 ± 0.4</td><td>67.1 ± 11.1</td><td><b>0.0 ± 0.0</b></td><td><b>0.4 ± 0.3</b></td><td>26.2 ± 0.7</td><td>23.4 ± 2.9</td></tr>
+            <tr><td>Logistic regression</td><td>83.8 ± 0.9</td><td>0.348 ± 0.010</td><td>1.5 ± 0.4</td><td>37.3 ± 2.2</td><td>8.7 ± 0.2</td><td>25.7 ± 4.5</td><td>72.9 ± 4.1</td><td>36.2 ± 0.5</td></tr>
+            <tr><td>Reference (always OK)</td><td>16.7 ± 0.0</td><td>0.500 ± 0.000</td><td>0.0 ± 0.0</td><td>0.0 ± 0.0</td><td>100.0 ± 0.0</td><td>100.0 ± 0.0</td><td>0.0 ± 0.0</td><td>50.0 ± 0.0</td></tr>
+            <tr class="setting"><td colspan="9">Multi-modal · pressure, temperature, two ultrasound · 9 classes</td></tr>
+            <tr class="mouldit"><td>MouldIt</td><td><b>100.0 ± 0.0</b></td><td><b>1.000 ± 0.000</b></td><td><b>100.0 ± 0.0</b></td><td>3.9 ± 1.2</td><td><b>0.0 ± 0.0</b></td><td><b>0.0 ± 0.0</b></td><td><b>0.0 ± 0.0</b></td><td><b>1.0 ± 0.3</b></td></tr>
+            <tr><td>RF + PCA flag</td><td class="na">–</td><td class="na">–</td><td class="na">–</td><td>1.9 ± 0.4</td><td>0.1 ± 0.1</td><td>2.2 ± 0.2</td><td><b>0.0 ± 0.0</b></td><td>1.1 ± 0.1</td></tr>
+            <tr><td>kNN</td><td>99.4 ± 0.3</td><td>0.938 ± 0.002</td><td>79.9 ± 0.4</td><td><b>1.1 ± 0.7</b></td><td>0.7 ± 0.2</td><td>15.1 ± 0.2</td><td>5.0 ± 0.5</td><td>5.5 ± 0.3</td></tr>
+            <tr><td>Random forest</td><td>99.9 ± 0.1</td><td>0.920 ± 0.008</td><td>72.2 ± 1.1</td><td>13.6 ± 0.7</td><td><b>0.0 ± 0.0</b></td><td>15.5 ± 0.5</td><td>12.3 ± 0.6</td><td>10.4 ± 0.4</td></tr>
+            <tr><td>PCA</td><td>93.0 ± 4.8</td><td>0.995 ± 0.000</td><td>97.8 ± 0.2</td><td>93.2 ± 8.3</td><td><b>0.0 ± 0.0</b></td><td><b>0.0 ± 0.0</b></td><td>2.2 ± 0.2</td><td>23.8 ± 2.0</td></tr>
+            <tr><td>Logistic regression</td><td>80.8 ± 0.8</td><td>0.544 ± 0.057</td><td>0.1 ± 0.0</td><td>62.5 ± 2.2</td><td>7.5 ± 0.9</td><td>19.9 ± 4.9</td><td>80.0 ± 4.9</td><td>42.5 ± 0.3</td></tr>
+            <tr><td>Reference (always OK)</td><td>11.1 ± 0.0</td><td>0.500 ± 0.000</td><td>0.0 ± 0.0</td><td>0.0 ± 0.0</td><td>100.0 ± 0.0</td><td>100.0 ± 0.0</td><td>0.0 ± 0.0</td><td>50.0 ± 0.0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">Percent, except AUROC; mean ± standard deviation over three seeds. Unknown metrics are averaged over the held-out failure modes; detection is at a 5 % false positive rate. RF + PCA flag has no classifier or score of its own, so it only has sorting errors. Bold marks the best method per column, excluding the reference.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="latent">
+    <div class="section-head read">
+      <div class="label">Analysis</div>
+      <h2 id="latent">How MouldIt detects unknown faults</h2>
+      <p>We split the novelty score into its latent and reconstruction terms. MouldIt's latent space keeps OK cycles far from the known faults: the median distance of an OK cycle to its nearest fault is 10.1 boundary units with pressure only and 25.3 with all sensors, against 0.17 and 0.15 for PCA. PCA follows the largest variance rather than the classes, so 96 % of OK cycles fall inside a fault boundary and it rejects most good parts.</p>
+      <p>With more data, unknown faults move out of the known classes in the latent space. With little data, MouldIt relies more on reconstruction error.</p>
+    </div>
+    <figure>
+      <div class="fig"><img src="assets/latent.png" alt="Latent and reconstruction terms of the novelty score for MouldIt and PCA with secondary pressure rise held out." loading="lazy"></div>
+      <figcaption><b>Secondary pressure rise held out</b>, 16,000 cycles, seed 42. (a)–(d) Distance of each test cycle to the OK class and to its nearest known fault. (e)–(h) The latent and reconstruction terms of the novelty score; a cycle is missed only in the lower left box.</figcaption>
+    </figure>
+  </section>
+
+  <section aria-labelledby="limits">
+    <div class="limits read">
+      <h2 id="limits" style="font-size: var(--step-2);">Limits</h2>
+      <ul>
+        <li>All cycles but one are synthetic, from one part and one material; the defect sizes are modelling choices.</li>
+        <li>About 5 % false alarms is high for production.</li>
+        <li>Before deployment, validate on real defects and set the alarm threshold by weighing a shipped faulty part against a rejected good one.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section aria-labelledby="citation">
+    <div class="section-head">
+      <div class="label">Cite</div>
+      <h2 id="citation">Citation</h2>
+    </div>
+    <div class="stack">
+      <div class="cite">
+        <button class="copy" type="button" data-copy="bib-paper">Copy</button>
+        <pre id="bib-paper">@misc{ayad2026mouldit,
+  author        = {Ayad, Abdullah},
+  title         = {{MouldIt}: Data Efficiency of Multi-Task Temporal Representation Learning in Injection Moulding},
+  year          = {2026},
+  eprint        = {2611.13646},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url           = {https://arxiv.org/abs/2611.13646}
+}</pre>
+      </div>
+      <p class="table-note">If you use the data, please also cite the dataset:</p>
+      <div class="cite">
+        <button class="copy" type="button" data-copy="bib-data">Copy</button>
+        <pre id="bib-data">@misc{kini2026dataset,
+  author       = {Kini, Rohan and Schweizer, Lukas},
+  title        = {{FORinFPRO-HIMD}: Multimodal Sensor Dataset for Hybrid Injection Molding of Continuous
+                  Fiber-Reinforced Polypropylene Composites},
+  howpublished = {Zenodo},
+  year         = {2026},
+  doi          = {10.5281/zenodo.20744054}
+}</pre>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>The reference cycle is from FORinFPRO-HIMD by Rohan Kini and Lukas Schweizer, <a href="https://doi.org/10.5281/zenodo.20744054">doi:10.5281/zenodo.20744054</a>, CC BY 4.0.</span>
+  <span>The <a href="https://github.com/ayadabdalla/mouldit_benchmark">code</a> is under the <a href="https://github.com/ayadabdalla/mouldit_benchmark/blob/main/LICENSE">PolyForm Noncommercial License 1.0.0</a>: free for research, teaching and other noncommercial use. Commercial use needs a separate licence from the author.</span>
+</footer>
+
+<script>
+document.querySelectorAll('.tabs [role="tab"]').forEach(function (tab) {
+  tab.addEventListener('click', function () {
+    var group = tab.dataset.group;
+    document.querySelectorAll('[role="tab"][data-group="' + group + '"]').forEach(function (t) {
+      t.setAttribute('aria-selected', String(t === tab));
+    });
+    document.querySelectorAll('[role="tabpanel"][data-group="' + group + '"]').forEach(function (p) {
+      p.hidden = p.id !== tab.getAttribute('aria-controls');
+    });
+  });
+});
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var pre = document.getElementById(btn.dataset.copy);
+    var done = function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1600); };
+    var fallback = function () {
+      var r = document.createRange(); r.selectNodeContents(pre);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      btn.textContent = 'Selected, press Ctrl+C';
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(pre.textContent).then(done, fallback);
+    } else { fallback(); }
+  });
+});
+</script>
+
+</body>
+</html>
